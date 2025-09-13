@@ -1,0 +1,10 @@
+module sipo_sh_r #(parameter width=8)(input en , si ,clk,rst, output reg [7:0]data ) ;
+
+always @(*)
+begin 
+if (rst)
+data <= 8'b0; 
+else if ( en ) 
+data = {si,data[width-1:1]};
+end 
+endmodule 
