@@ -1,0 +1,81 @@
+module edge_detector ( input clk,rst,data, rx_en , output reg out);
+parameter zero_1 =  2'b 00; 
+parameter one_1  =  2'b 01;
+parameter zero_n =  2'b 10;  
+parameter one_n =   2'b 11; 
+reg [1:0]ns , cs ; 
+
+always @(*)
+begin 
+ns = cs ; 
+out = 1'b0 ; 
+if ( rx_en) 
+begin 
+  case (cs)
+    zero_1  :
+      begin 
+        if (!data ) 
+           begin 
+            ns = zero_1 ; 
+            out = 0 ;  
+           end 
+       else if (data)
+           begin 
+            ns = one_1 ; 
+            out = 0; 
+           end 
+        end   
+
+    one_1 : 
+      begin 
+        if (data ==0) 
+           begin 
+            ns = zero_n ; 
+            out = 1 ;  
+           end 
+        else if ( data==1) 
+           begin 
+             ns = one_1; 
+             out = 0 ;  
+           end  
+        end 
+   zero_n : 
+     begin 
+        if (data ==0) 
+           begin 
+            ns = zero_n ; 
+            out = 0 ;  
+           end 
+        else if ( data==1) 
+           begin 
+             ns = one_n; 
+             out = 1 ;  
+           end  
+     end 
+  one_n :
+    begin 
+        if (data ==0) 
+           begin 
+            ns = zero_n ; 
+            out = 0 ;  
+           end 
+        else if ( data==1) 
+           begin 
+             ns = one_n; 
+             out = 1 ;  
+           end  
+    end   
+ 
+  endcase 
+end  
+end 
+
+always @(posedge clk)
+begin 
+if (rst)
+cs <= zero_1 ; 
+else 
+cs <= ns ; 
+end 
+
+endmodule 
