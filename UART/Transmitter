@@ -1,0 +1,67 @@
+module transmitter ( input tx_en ,clk, rst , arst_n , input [9:0]data , output reg busy , done , tx) ;
+reg [9:0]frame ; 
+reg [3:0] bit_select = 0 ; 
+reg [13:0] count = 14'd10416 ; 
+
+always @ (posedge clk or posedge arst_n)
+ begin
+ if (arst_n) 
+   begin 
+    done <= 0 ; 
+    busy <=0 ; 
+    tx<= 0 ;  
+   end 
+else if ( rst)
+   tx <=1;
+else
+  begin  
+   frame <= data ; 
+  end  
+ end 
+
+
+always @(*) 
+ begin 
+   if (tx_en) 
+   begin 
+ 
+   case (bit_select) 
+  
+   4'b0000 : tx = frame [0] ;
+   4'b0001 : tx = frame [1] ;
+   4'b0010 : tx = frame [2] ; 
+   4'b0011 : tx = frame [3] ; 
+   4'b0100 : tx = frame [4] ; 
+   4'b0101 : tx = frame [5] ;  
+   4'b0110 : tx = frame [6] ; 
+   4'b0111 : tx = frame [7] ; 
+   4'b1000 : tx = frame [8] ; 
+   4'b1001 : tx = frame [9] ; 
+   endcase 
+   end 
+ end 
+ 
+always @(posedge clk)
+begin 
+if (tx_en)
+begin 
+
+count <= count +1 ; 
+if (count ==10415 && bit_select<10)
+ begin 
+ bit_select <= bit_select +1'b1 ;
+ count <= 0 ; 
+ busy <= 1 ; 
+ done <=0 ; 
+ end 
+else if ( bit_select ==10)
+  begin
+  busy <= 0 ; 
+ done <=1 ; 
+
+  end  
+
+end 
+end 
+
+endmodule  
