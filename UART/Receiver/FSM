@@ -1,0 +1,98 @@
+module fsm (input clk ,rst , data ,flag, output reg en ,fire, busy , output done ,error ); 
+parameter IDLE  =3'b000;
+parameter START =3'b001;
+parameter DATA  =3'b010;
+parameter ERR   =3'b011;
+parameter DONE  =3'b100;
+reg [2:0]ns,cs ; 
+reg [3:0] count =0; 
+baud_counter m( .en(fire),.clk(clk) , .rst(rst) , .flag(flag)) ;
+ always @(*)
+  begin
+  ns = cs; 
+case (cs)
+
+IDLE  : 
+   begin 
+    if (data==1)
+       begin 
+      ns = START ;
+       fire = 1 ; 
+       end  
+      
+    else 
+      ns=IDLE ; 
+
+   end 
+
+START : 
+   begin 
+   if ( data==0 || data==1 && flag) 
+     begin 
+      ns = DATA ;
+     
+     end 
+   end 
+ 
+DATA  : 
+    begin 
+  
+   if ( (data==0 || data==1)&& count <8 && flag ) 
+      begin 
+        
+        ns = DATA ; 
+     
+     end 
+     else if  (data==0 && count ==8 ) 
+       ns = ERR ; 
+
+     else if (data==1 && count ==8 ) 
+      ns = DONE ; 
+     end 
+ERR   : 
+    begin 
+    if ( (data==0 || data==1))
+        ns = IDLE ; 
+    end 
+DONE  :
+    begin 
+      if ( (data==0 || data==1))
+         ns = IDLE ; 
+     end 
+    endcase 
+   
+  end 
+
+always @(posedge clk)
+  begin 
+  
+  if (rst)
+   begin 
+  cs <= 3'b000; 
+  busy <= 0  ; 
+  fire <= 0;
+  en <= 0 ; 
+end  
+else 
+ begin 
+   cs <= ns ; 
+
+
+  if (ns== DATA &&count <8)
+   begin 
+     busy <= 1 ;
+     if (flag)
+   begin 
+     en <= 1 ; 
+   count <= count +1 ;
+    end 
+  else 
+    en <= 0 ; 
+   end  
+   else if ( count == 8 )
+   count <= 0 ;
+ end 
+  end 
+  assign done = (cs==DONE)? 1'b1 : 1'b0 ;
+  assign error = (cs==ERR)? 1'b1 : 1'b0 ; 
+ endmodule 
