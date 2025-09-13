@@ -1,0 +1,28 @@
+module receiver (input rx_en , clk , rst , arst_n , rx , output reg done , err ,   busy , output reg  [7:0]data ) ;
+parameter width = 8 ; 
+wire fire , en ,flag , w1;
+wire [7:0]data_out  ; 
+wire done_out , err_out , busy_out; 
+ edge_detector m1(.clk(clk), .rst(rst),.data(rx) ,.rx_en(rx_en), .out(w1));
+ sipo_sh_r #( .width(width) ) m2(.en(en) , .si(rx) ,.clk(clk), .rst(rst),  .data(data_out) ) ; 
+fsm  m3( .clk(clk) ,.rst(rst) , .data(w1) , .flag (flag), .fire(fire) , .en(en) , .busy (busy_out) , .done(done_out) ,.error(err_out) ); 
+
+always @(posedge clk or negedge arst_n)
+begin 
+if (!arst_n) 
+  begin 
+  busy <=0 ;
+  err <=0 ; 
+  done <=0 ; 
+  data <= 0 ; 
+  end 
+else if ( rst) 
+   data <= 0 ; 
+else 
+ data <= data_out ; 
+ done <= done_out ; 
+ err <= err_out ; 
+ busy <= busy_out ;
+
+end 
+endmodule 
